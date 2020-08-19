@@ -9,9 +9,9 @@ import cv2
 import torch
 import torch.backends.cudnn as cudnn
 from numpy import random
-
+import numpy as np
 from models.experimental import attempt_load
-from utils.datasets import LoadStreams, LoadImages
+from utils.datasets import letterbox
 from utils.general import (
     check_img_size, non_max_suppression, apply_classifier, scale_coords,
     xyxy2xywh, plot_one_box, strip_optimizer, set_logging)
@@ -58,10 +58,16 @@ class detector:
 
 
   def detect(self,opt,save_img=False):
-    dataset = LoadImages(opt.source, img_size=self.imgsz)
+    img = letterbox(opt.source, new_shape=self.imgsz)[0]
+      # Convert
+    img = img[:, :, ::-1].transpose(2, 0, 1)  # BGR to RGB, to 3x416x416
+    img = np.ascontiguousarray(img)
+
+    dataset = [(img,opt.source)]
+
     img = torch.zeros((1, 3, self.imgsz, self.imgsz), device=self.device)  # init img
     result = []
-    for path, img, im0s, vid_cap in dataset:
+    for img, im0s in dataset:
         img = torch.from_numpy(img).to(self.device)
         img = img.half() if self.half else img.float()  # uint8 to fp16/32
         img /= 255.0  # 0 - 255 to 0.0 - 1.0
