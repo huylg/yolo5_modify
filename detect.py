@@ -36,9 +36,8 @@ class detector:
           opt.output, opt.source, opt.weights, opt.view_img, opt.save_txt, opt.img_size
     webcam = False
     set_logging()
-    if os.path.exists(out):
-        shutil.rmtree(out)  # delete output folder
-    os.makedirs(out)  # make new output folder
+    if not os.path.exists(out):
+        os.makedirs(out)  # make new output folder
     self.device = select_device(opt.device)
     self.model = attempt_load(weights, map_location=self.device)  # load FP32 model
     self.imgsz = check_img_size(imgsz, s=self.model.stride.max())  # check img_size
@@ -48,20 +47,21 @@ class detector:
     
 
     # Set Dataloader
-    vid_path, vid_writer = None, None
-    if webcam:
-        view_img = True
-        cudnn.benchmark = True  # set True to speed up constant image size inference
-        self.dataset = LoadStreams(source, img_size=self.imgsz)
-    else:
-        save_img = True
-        self.dataset = LoadImages(source, img_size=self.imgsz)
-    img = torch.zeros((1, 3, self.imgsz, self.imgsz), device=self.device)  # init img
+    # vid_path, vid_writer = None, None
+    # if webcam:
+    #     view_img = True
+    #     cudnn.benchmark = True  # set True to speed up constant image size inference
+    #     self.dataset = LoadStreams(source, img_size=self.imgsz)
+    # else:
+    #     save_img = True
+        
 
 
   def detect(self,opt,save_img=False):
+    dataset = LoadImages(opt.source, img_size=self.imgsz)
+    img = torch.zeros((1, 3, self.imgsz, self.imgsz), device=self.device)  # init img
     result = []
-    for path, img, im0s, vid_cap in self.dataset:
+    for path, img, im0s, vid_cap in dataset:
         img = torch.from_numpy(img).to(self.device)
         img = img.half() if self.half else img.float()  # uint8 to fp16/32
         img /= 255.0  # 0 - 255 to 0.0 - 1.0
