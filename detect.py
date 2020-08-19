@@ -86,5 +86,5 @@ class detector:
               for *xyxy, conf, cls in reversed(det):
                   # label = '%s %.2f' % (names[int(cls)], conf)
                   c1,c2 = (int(xyxy[0]), int(xyxy[1])), (int(xyxy[2]), int(xyxy[3]))
-                  result.append(((c1,c2),int(cls)))   
+                  result.append(((c1,c2),int(cls),conf))   
     return result
